@@ -40,3 +40,13 @@ coverage/
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Next.js
+.next/
+out/
+
+# Python
+.venv/
+venv/
+*.pyc
+__pycache__/
