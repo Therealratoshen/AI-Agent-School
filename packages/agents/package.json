@@ -1,0 +1,15 @@
+{
+  "name": "@ai-agent-school/agents",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "lint": "ruff check src/",
+    "typecheck": "mypy src/"
+  },
+  "dependencies": {
+    "crewai": "^0.80.0",
+    "mem0ai": "^0.1.0"
+  }
+}

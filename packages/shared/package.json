@@ -1,0 +1,14 @@
+{
+  "name": "@ai-agent-school/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "lint": "ruff check src/",
+    "typecheck": "mypy src/"
+  },
+  "dependencies": {
+    "pydantic": "^2.9.0"
+  }
+}

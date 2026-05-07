@@ -1,0 +1,14 @@
+{
+  "name": "@ai-agent-school/memory",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "lint": "ruff check src/",
+    "typecheck": "mypy src/"
+  },
+  "dependencies": {
+    "mem0ai": "^0.1.0"
+  }
+}
