@@ -1,6 +1,10 @@
-# AI Agent School - README
+# AI Agent School
 
 Automated training system for AI agents to learn and improve.
+
+## Core Problem Solved
+
+**"Cron jobs work for 1 week then silently fail"** — agents learn to detect, monitor, and recover from silent failures.
 
 ## Quick Start
 
@@ -31,25 +35,11 @@ ai-agent-school/
 │   ├── tracking/         # Mistake tracking
 │   └── dashboard/        # Web dashboard
 ├── student-agent/         # Student agent (runs on your VPS)
+├── shared/               # Shared utilities
 ├── lessons/              # Course content
 ├── data/                 # Runtime data
 ├── config/               # Configuration
-└── scripts/              # Setup scripts
-```
-
-## Configuration
-
-Edit `config/config.local.yaml`:
-
-```yaml
-communication:
-  base_dir: "/shared/ai-school"  # Shared folder between school and student
-
-memory:
-  student_memory_path: "/home/user/openclaw/memory"  # Your agent's memory
-
-student:
-  api_endpoint: "http://localhost:8081"  # Your agent's API
+└── scripts/             # Setup scripts
 ```
 
 ## How It Works
@@ -58,7 +48,17 @@ student:
 2. Teacher sends lessons
 3. Student learns and takes quizzes
 4. Mistakes are tracked and corrected
-5. When 7 days pass with no failures, agent is production-ready
+5. Corrections persist in memory
+6. Cron jobs are monitored and auto-healed
+7. When 7 days pass with no failures, agent is production-ready
+
+## Tech Stack
+
+- **Primary LLM:** MiniMax 2.7 high speed
+- **Agent Framework:** CrewAI (compatible)
+- **Memory Layer:** File-based + SQLite
+- **Backend:** Python
+- **Frontend:** HTML/JS Dashboard
 
 ## Dashboard
 
@@ -68,6 +68,7 @@ Open http://localhost:8080 to view:
 - Mistakes tracked
 - Corrections applied
 - Training progress
+- Cron job status
 
 ## Requirements
 
