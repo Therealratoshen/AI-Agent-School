@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent School - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-blue: #3b82f6;
+            --accent-green: #22c55e;
+            --accent-yellow: #eab308;
+            --accent-red: #ef4444;
+            --border: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .logo-icon {
+            font-size: 1.5rem;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid var(--accent-green);
+            border-radius: 9999px;
+            color: var(--accent-green);
+            font-size: 0.875rem;
+        }
+
+        .status-badge.training {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .status-badge.paused {
+            background: rgba(234, 179, 8, 0.1);
+            border-color: var(--accent-yellow);
+            color: var(--accent-yellow);
+        }
+
+        .main {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-icon {
+            font-size: 1.5rem;
+        }
+
+        .stat-trend {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+        }
+
+        .stat-trend.up {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--accent-green);
+        }
+
+        .stat-trend.down {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .progress-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .progress-title {
+            font-weight: 600;
+        }
+
+        .progress-percent {
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            height: 0.75rem;
+            background: var(--border);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+            border-radius: 9999px;
+            transition: width 0.3s ease;
+        }
+
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-body {
+            padding: 1rem 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-dot.ok { background: var(--accent-green); }
+        .status-dot.warning { background: var(--accent-yellow); }
+        .status-dot.error { background: var(--accent-red); }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .refresh-time {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <span class="logo-icon">🎓</span>
+            <span>AI Agent School</span>
+        </div>
+        <div class="status-badge training" id="status-badge">
+            <span class="status-dot ok"></span>
+            <span id="status-text">TRAINING</span>
+        </div>
+    </header>
+
+    <main class="main">
+        <h1 class="page-title">Dashboard</h1>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-icon">🤖</span>
+                    <span class="stat-trend up">+2 days</span>
+                </div>
+                <div class="stat-value" id="uptime">5</div>
+                <div class="stat-label">Days Training</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-icon">💾</span>
+                    <span class="stat-trend up">Healthy</span>
+                </div>
+                <div class="stat-value" id="memory-health">92%</div>
+                <div class="stat-label">Memory Health</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-icon">⚠️</span>
+                    <span class="stat-trend down">-1</span>
+                </div>
+                <div class="stat-value" id="mistakes-today">2</div>
+                <div class="stat-label">Active Mistakes</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-icon">🎯</span>
+                </div>
+                <div class="stat-value" id="corrections">8</div>
+                <div class="stat-label">Corrections Applied</div>
+            </div>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-header">
+                <span class="progress-title">Production Ready Progress</span>
+                <span class="progress-percent" id="progress-percent">71%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 71%;"></div>
+            </div>
+            <div style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
+                <span id="days-remaining">5</span> days remaining
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <span>Current Module</span>
+                <span class="refresh-time">Last updated: just now</span>
+            </div>
+            <div class="section-body">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 1.125rem;">Module 3: Silent Failure Detection</div>
+                        <div style="color: var(--text-secondary); margin-top: 0.25rem;">Cron Handling Course</div>
+                    </div>
+                    <button class="btn btn-primary">Continue Lesson</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <span>Recent Activity</span>
+                <a href="#" style="color: var(--accent-blue); font-size: 0.875rem;">View All</a>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Event</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="activity-table">
+                    <tr>
+                        <td>10:30</td>
+                        <td>Lesson 3 delivered</td>
+                        <td>Lesson</td>
+                        <td><span class="status-dot ok"></span>Completed</td>
+                    </tr>
+                    <tr>
+                        <td>10:35</td>
+                        <td>Quiz submitted - Score: 85%</td>
+                        <td>Quiz</td>
+                        <td><span class="status-dot ok"></span>Passed</td>
+                    </tr>
+                    <tr>
+                        <td>10:40</td>
+                        <td>Correction applied: Wrong cron syntax</td>
+                        <td>Correction</td>
+                        <td><span class="status-dot ok"></span>Applied</td>
+                    </tr>
+                    <tr>
+                        <td>10:45</td>
+                        <td>Cron job sync-files missed heartbeat</td>
+                        <td>Alert</td>
+                        <td><span class="status-dot warning"></span>Warning</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <span>Cron Jobs Status</span>
+                <span class="refresh-time">2/3 Healthy</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Job Name</th>
+                        <th>Schedule</th>
+                        <th>Last Heartbeat</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="cron-table">
+                    <tr>
+                        <td>backup-db</td>
+                        <td>0 2 * * *</td>
+                        <td>2 min ago</td>
+                        <td><span class="status-dot ok"></span>OK</td>
+                        <td><button class="btn" style="background: var(--border);">Restart</button></td>
+                    </tr>
+                    <tr>
+                        <td>sync-files</td>
+                        <td>*/15 * * * *</td>
+                        <td>12 min ago</td>
+                        <td><span class="status-dot warning"></span>Warning</td>
+                        <td><button class="btn" style="background: var(--accent-yellow); color: #000;">Heal</button></td>
+                    </tr>
+                    <tr>
+                        <td>cleanup-logs</td>
+                        <td>0 0 * * *</td>
+                        <td>1 hour ago</td>
+                        <td><span class="status-dot ok"></span>OK</td>
+                        <td><button class="btn" style="background: var(--border);">Restart</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        async function fetchStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                console.log('Status:', data);
+            } catch (error) {
+                console.error('Failed to fetch status:', error);
+            }
+        }
+
+        setInterval(fetchStatus, 30000);
+        fetchStatus();
+    </script>
+</body>
+</html>
