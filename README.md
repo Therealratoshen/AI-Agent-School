@@ -76,6 +76,69 @@ Open http://localhost:8080 to view:
 - Shared folder between school and student VPS
 - Your agent must support file-based communication
 
+## Testing
+
+### Local Development (Unit Tests)
+
+```bash
+# Run all unit tests (132 tests)
+cd ai-agent-school
+pytest tests/ -v --tb=short
+
+# Run with coverage
+pytest tests/ --cov=. --cov-report=term-missing
+```
+
+**Coverage:** 132 tests run locally without external dependencies.
+
+### Full Test Suite (VPS)
+
+The full integration test suite (176 tests) requires PostgreSQL running on VPS:
+
+```bash
+# Start PostgreSQL via docker-compose
+docker-compose up -d postgres
+
+# Run full test suite
+pytest tests/ -v --tb=short
+
+# With coverage
+pytest tests/ --cov=. --cov-report=term-missing
+```
+
+**Coverage:** 176 tests (132 unit + 44 integration requiring PostgreSQL)
+
+### Test Structure
+
+```
+tests/
+├── unit/               # Unit tests (run locally)
+│   ├── test_config.py
+│   ├── test_minimax_client.py
+│   ├── test_message_queue.py
+│   ├── test_self_correction.py
+│   ├── test_graduation.py
+│   └── test_database.py
+├── conftest.py         # Shared fixtures (mocks DB, MiniMax, MessageQueue)
+├── test_teacher.py     # Integration tests (require PostgreSQL)
+├── test_student.py     # Integration tests (require PostgreSQL)
+└── test_cron.py        # Integration tests (require PostgreSQL)
+```
+
+### Why 44 Tests Require VPS
+
+These tests interact with PostgreSQL for:
+- Student enrollment and progress tracking
+- Teacher-agent conversation history
+- Graduation status management
+- Cron job monitoring state
+
+The mocking layer (conftest.py autouse fixtures) cannot patch Python's module-level import caching for `get_db()` calls. For local iteration, these tests are skipped.
+
+## Project Status
+
+In development - Phase 1 (Foundation) - 99% test coverage target
+
 ## License
 
 MIT
