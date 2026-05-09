@@ -1,0 +1,16 @@
+{
+  "name": "ai-agent-school",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:web": "pnpm --filter @ai-agent-school/web dev",
+    "dev:api": "cd apps/api && python -m uvicorn src.main:app --reload",
+    "build:web": "pnpm --filter @ai-agent-school/web build",
+    "lint": "pnpm --filter @ai-agent-school/web lint"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0"
+}

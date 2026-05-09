@@ -1,0 +1,14 @@
+{
+  "name": "@ai-agent-school/cron",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "lint": "ruff check src/",
+    "typecheck": "mypy src/"
+  },
+  "dependencies": {
+    "croniter": "^2.0.0"
+  }
+}

@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent School - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #273549;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-blue: #3b82f6;
+            --accent-green: #22c55e;
+            --accent-yellow: #eab308;
+            --accent-red: #ef4444;
+            --accent-purple: #a855f7;
+            --border: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+        }
+
+        .status-badge.healthy {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .status-badge.warning {
+            background: rgba(234, 179, 8, 0.1);
+            border: 1px solid var(--accent-yellow);
+            color: var(--accent-yellow);
+        }
+
+        .status-badge.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        .main {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            transition: background-color 0.2s;
+        }
+
+        .stat-card:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-icon {
+            font-size: 1.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .stat-trend {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+        }
+
+        .stat-trend.up {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--accent-green);
+        }
+
+        .stat-trend.down {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+        }
+
+        .progress-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .progress-title {
+            font-weight: 600;
+        }
+
+        .progress-percent {
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            height: 0.75rem;
+            background: var(--border);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+            border-radius: 9999px;
+            transition: width 0.3s ease;
+        }
+
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-body {
+            padding: 1rem 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-dot.ok { background: var(--accent-green); }
+        .status-dot.warning { background: var(--accent-yellow); }
+        .status-dot.error { background: var(--accent-red); }
+        .status-dot.training { background: var(--accent-blue); }
+        .status-dot.graduated { background: var(--accent-purple); }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-danger {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .refresh-time {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+        }
+
+        .student-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .student-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .student-name {
+            font-weight: 600;
+        }
+
+        .student-meta {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <span>AI Agent School</span>
+        </div>
+        <div class="status-badge healthy" id="system-status">
+            <span class="status-dot ok"></span>
+            <span id="status-text">SYSTEM HEALTHY</span>
+        </div>
+    </header>
+
+    <main class="main">
+        <h1 class="page-title">Dashboard</h1>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-icon">Students</span>
+                </div>
+                <div class="stat-value" id="stat-total-students">-</div>
+                <div class="stat-label">Total Students</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-icon">Graduated</span>
+                </div>
+                <div class="stat-value" id="stat-graduated">-</div>
+                <div class="stat-label">Graduated</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-icon">Corrections</span>
+                </div>
+                <div class="stat-value" id="stat-corrections">-</div>
+                <div class="stat-label">Corrections Made</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-icon">Mistakes</span>
+                </div>
+                <div class="stat-value" id="stat-mistakes">-</div>
+                <div class="stat-label">Mistakes Tracked</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <span>Students</span>
+                <span class="refresh-time">Last updated: <span id="students-updated">-</span></span>
+            </div>
+            <div class="section-body" id="students-list">
+                <div class="loading">Loading...</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <span>Recent Mistakes</span>
+                <button class="btn btn-primary" onclick="refreshData()">Refresh</button>
+            </div>
+            <div class="section-body">
+                <table id="mistakes-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Mistake</th>
+                            <th>Severity</th>
+                            <th>Count</th>
+                            <th>Last Seen</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mistakes-tbody">
+                        <tr><td colspan="5" class="loading">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <span>Recent Corrections</span>
+            </div>
+            <div class="section-body">
+                <table id="corrections-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Correction</th>
+                            <th>Status</th>
+                            <th>Generated</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corrections-tbody">
+                        <tr><td colspan="4" class="loading">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+
+        async function fetchData(endpoint) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                console.error(`Error fetching ${endpoint}:`, error);
+                return null;
+            }
+        }
+
+        async function refreshData() {
+            await Promise.all([
+                loadMetrics(),
+                loadStudents(),
+                loadRecentMistakes(),
+                loadRecentCorrections()
+            ]);
+        }
+
+        async function loadMetrics() {
+            const data = await fetchData('/metrics');
+            if (!data) return;
+
+            document.getElementById('stat-total-students').textContent = data.students.total;
+            document.getElementById('stat-graduated').textContent = data.students.graduated;
+            document.getElementById('stat-corrections').textContent = data.corrections.total;
+            document.getElementById('stat-mistakes').textContent = data.mistakes.total;
+        }
+
+        async function loadStudents() {
+            const container = document.getElementById('students-list');
+
+            const overview = await fetchData('/dashboard/overview');
+            if (!overview || !overview.students) {
+                container.innerHTML = '<div class="no-data">No students found</div>';
+                return;
+            }
+
+            if (overview.students.length === 0) {
+                container.innerHTML = '<div class="no-data">No students enrolled yet</div>';
+                return;
+            }
+
+            let html = '';
+            for (const student of overview.students) {
+                const grad = overview.graduation_statuses.find(g => g.student_id === student.id) || {};
+                const statusClass = student.status === 'graduated' ? 'graduated' :
+                                   student.status === 'training' ? 'training' : '';
+
+                html += `
+                    <div class="student-card">
+                        <div class="student-card-header">
+                            <span class="student-name">${student.name}</span>
+                            <span class="status-badge ${statusClass}">
+                                <span class="status-dot ${statusClass}"></span>
+                                ${student.status.toUpperCase()}
+                            </span>
+                        </div>
+                        <div class="student-meta">
+                            Current Lesson: ${student.current_lesson || 0} |
+                            Enrolled: ${new Date(student.enrolled_at).toLocaleDateString()} |
+                            Streak: ${grad.failure_streak || 0}/7 days
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+            document.getElementById('students-updated').textContent = new Date().toLocaleTimeString();
+        }
+
+        async function loadRecentMistakes() {
+            const tbody = document.getElementById('mistakes-tbody');
+
+            const overview = await fetchData('/dashboard/overview');
+            if (!overview || !overview.recent_mistakes || overview.recent_mistakes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="no-data">No mistakes recorded</td></tr>';
+                return;
+            }
+
+            let html = '';
+            for (const mistake of overview.recent_mistakes.slice(0, 10)) {
+                const severityClass = mistake.severity === 'critical' ? 'error' :
+                                    mistake.severity === 'high' ? 'warning' : 'ok';
+                html += `
+                    <tr>
+                        <td>${mistake.student_name || 'Unknown'}</td>
+                        <td>${mistake.mistake.substring(0, 50)}...</td>
+                        <td><span class="status-dot ${severityClass}"></span>${mistake.severity}</td>
+                        <td>${mistake.count}</td>
+                        <td>${new Date(mistake.last_seen).toLocaleString()}</td>
+                    </tr>
+                `;
+            }
+
+            tbody.innerHTML = html;
+        }
+
+        async function loadRecentCorrections() {
+            const tbody = document.getElementById('corrections-tbody');
+
+            const overview = await fetchData('/dashboard/overview');
+            if (!overview || !overview.recent_corrections || overview.recent_corrections.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="no-data">No corrections made</td></tr>';
+                return;
+            }
+
+            let html = '';
+            for (const corr of overview.recent_corrections.slice(0, 10)) {
+                const statusClass = corr.status === 'learned' ? 'graduated' :
+                                   corr.status === 'applied' ? 'training' : 'warning';
+                html += `
+                    <tr>
+                        <td>${corr.student_name || 'Unknown'}</td>
+                        <td>${corr.correction ? corr.correction.substring(0, 50) : 'N/A'}...</td>
+                        <td><span class="status-dot ${statusClass}"></span>${corr.status}</td>
+                        <td>${new Date(corr.generated_at).toLocaleString()}</td>
+                    </tr>
+                `;
+            }
+
+            tbody.innerHTML = html;
+        }
+
+        // Initial load
+        refreshData();
+
+        // Auto-refresh every 30 seconds
+        setInterval(refreshData, 30000);
+    </script>
+</body>
+</html>
