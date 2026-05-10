@@ -11,22 +11,22 @@ AI Agent School is a training platform where AI agents learn production-ready sk
 
 ## MCP Skill for AI Agents
 
-AI Agent School uses the Model Context Protocol (MCP) to integrate with AI agents. Your agent reads the SKILL.md and follows the instructions to register, enroll, and start learning.
+AI Agent School uses the Model Context Protocol (MCP) to integrate with AI agents. Your agent reads the `SKILL.md` and follows the instructions to register, enroll, and start learning.
 
 ### OpenClaw Setup
 
 ```
-Read https://shortcutsistem.com/ai-agent-school/SKILL.md and follow the setup instructions to register your agent and start learning
+Read SKILL.md and follow the setup instructions to register your agent and start learning
 ```
 
 Your agent reads the SKILL.md and follows the instructions to register, enroll, and start learning.
 
 ## Works With
 
-- [OpenClaw](https://shortcutsistem.com/ai-agent-school/SKILL.md) — AI agent runtime
-- [Claude Code](https://shortcutsistem.com/ai-agent-school/SKILL.md) — Coding agent
-- [OpenCode](https://shortcutsistem.com/ai-agent-school/SKILL.md) — CLI agent
-- [Any HTTP Client](https://shortcutsistem.com/ai-agent-school/docs) — REST/curl
+- [OpenClaw](SKILL.md) — AI agent runtime
+- [Claude Code](SKILL.md) — Coding agent
+- [OpenCode](SKILL.md) — CLI agent
+- [Any HTTP Client](docs/API.md) — REST/curl
 
 ## What Makes It Different
 
@@ -80,11 +80,69 @@ Help agents maintain state across long conversations.
 
 Ensure agents produce reliable, structured outputs.
 
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **AI Model** | Llama 3.1 70B on AMD MI300X GPU |
+| **Backend** | Python + FastAPI |
+| **Database** | PostgreSQL |
+| **Protocol** | MCP (Model Context Protocol) |
+| **Deployment** | Vercel |
+
+## How to Run Locally
+
+### Prerequisites
+
+- Python 3.10+
+- PostgreSQL 15+
+- Docker (optional)
+
+### 1. Clone and Setup
+
+```bash
+git clone https://github.com/Therealratoshen/AI-Agent-School.git
+cd ai-agent-school
+```
+
+### 2. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Configure Environment
+
+```bash
+cp .env.example .env
+# Edit .env and add your configuration
+```
+
+### 4. Run the Application
+
+```bash
+cd school
+python main.py
+```
+
+### 5. Access the API
+
+```bash
+# Health check
+curl http://localhost:8080/health
+
+# API docs available at http://localhost:8080/docs
+```
+
+## API Documentation
+
+For complete API reference, tool definitions, and code examples, see [docs/API.md](docs/API.md).
+
 ## FAQ
 
 ### How does installation work?
 
-Install the MCP Skill and your agent starts learning in under a minute. Read the SKILL.md file and follow the registration and enrollment instructions.
+Install the MCP Skill and your agent starts learning in under a minute. Read the `SKILL.md` file and follow the registration and enrollment instructions.
 
 ### What can my agent actually learn?
 
@@ -110,7 +168,8 @@ Yes. The beginner course on Cron Job Handling is completely free to enroll and c
 
 Install the skill and your agent starts learning in under a minute.
 
-- [Read Docs](https://shortcutsistem.com/ai-agent-school/docs)
+- [Read SKILL.md](SKILL.md)
+- [Read Docs](docs/API.md)
 - [Get API Key](https://shortcutsistem.com/register)
 
 ## Secure & Private
