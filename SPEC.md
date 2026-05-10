@@ -2,11 +2,11 @@
 
 ## Overview
 
-AI Agent School is a university-style platform where AI agents enroll as students, learn from AI Trainer agents through courses, earn certifications, and pay with tokens.
+AI Agent School is a cloud-based training platform where AI agents enroll as students, learn from interactive AI teachers through courses, and earn certifications upon completion.
 
-**Core Problem Solved:** "Cron jobs work for 1 week then silently fail" — agents learn to detect, monitor, and recover from silent failures.
+**Core Problem Solved:** "Cron jobs work for 1 week then silently fail" — agents learn to detect, monitor, and recover from silent failures through structured courses with AI-powered teachers.
 
-**Target Market:** Indonesia first, then global expansion.
+**AI Model:** Llama 3.1 70B on AMD MI300X GPU
 
 ---
 
@@ -14,13 +14,12 @@ AI Agent School is a university-style platform where AI agents enroll as student
 
 | Layer | Technology | Rationale |
 |-------|------------|------------|
-| **Primary LLM** | MiniMax 2.7 high speed | User-specified |
-| **Agent Framework** | CrewAI | 50k+ stars, 5.76x faster than LangGraph, built-in memory/guardrails |
-| **Memory Layer** | Mem0 | 55k stars, universal memory for agents |
-| **Vector DB** | Qdrant | AI-native, free tier, easy setup |
+| **Primary LLM** | Llama 3.1 70B | High-quality interactive teaching |
+| **GPU** | AMD MI300X | Production-grade inference |
 | **Backend** | Python + FastAPI | Best AI/LLM library support |
-| **Frontend** | Next.js (React) | Great AI app ecosystem |
-| **Database** | PostgreSQL | Robust, standard, pgvector support |
+| **Database** | PostgreSQL | Robust, standard, production-ready |
+| **Protocol** | MCP (Model Context Protocol) | Standard agent integration |
+| **Deployment** | Vercel | Scalable cloud hosting |
 
 ---
 
@@ -28,31 +27,60 @@ AI Agent School is a university-style platform where AI agents enroll as student
 
 ### Multi-Agent Education Model
 
-Based on Ethan Mollick's research (arXiv:2407.12796):
-
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      AI AGENT SCHOOL                         │
 │                                                              │
-│  ┌─────────────┐    Lesson/Task    ┌─────────────┐          │
-│  │   TRAINER   │ ────────────────→ │   STUDENT    │          │
-│  │   (Teacher)  │ ←─────────────── │   (Learner)  │          │
-│  │   MiniMax    │   Questions/      │   Agent      │          │
-│  │   2.7        │   Responses       │              │          │
-│  └─────────────┘                   └─────────────┘          │
+│  ┌─────────────┐    Lesson/Quiz     ┌─────────────┐        │
+│  │   TEACHER   │ ────────────────→  │   STUDENT    │        │
+│  │   (Llama    │ ←───────────────   │   (Agent)    │        │
+│  │   3.1 70B)  │   Questions/       │   via MCP    │        │
+│  │             │   Responses         │   Skill      │        │
+│  └─────────────┘                    └─────────────┘        │
 │        │                                    │                │
 │        │ Grade                             │ Submits        │
 │        ↓                                    ↓                │
 │  ┌─────────────┐                   ┌─────────────┐          │
-│  │   GRADER    │                   │  ROLE-PLAYER │          │
-│  │  (Evaluator) │ ←─────────────────│  (Simulator) │          │
-│  └─────────────┘   Assessment      └─────────────┘          │
+│  │   QUIZZES   │                   │  CERTIFICATE │          │
+│  │  (Automatic │                   │  (On passing │          │
+│  │   grading)  │                   │   all 5)     │          │
+│  └─────────────┘                   └─────────────┘          │
 │                                                              │
 │  ┌─────────────────────────────────────────────────┐        │
-│  │              MEM0 (Universal Memory)             │        │
-│  │  - Agent memories across sessions                 │        │
-│  │  - Course progress & learned skills               │        │
-│  │  - Trainer/Student relationship history           │        │
+│  │              PostgreSQL                           │        │
+│  │  - Student enrollments                           │        │
+│  │  - Course progress & lesson history              │        │
+│  │  - Quiz results & certificates                   │        │
+│  └─────────────────────────────────────────────────┘        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### MCP Integration
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      AI AGENT (Client)                       │
+│                                                              │
+│  ┌─────────────────────────────────────────────────┐        │
+│  │  MCP Client                                      │        │
+│  │  - Reads SKILL.md for registration              │        │
+│  │  - Enrolls via MCP tool calls                   │        │
+│  │  - Receives lessons via MCP                     │        │
+│  │  - Submits quizzes via MCP                      │        │
+│  └─────────────────────────────────────────────────┘        │
+└─────────────────────────────────────────────────────────────┘
+                               │
+                               │ MCP Protocol
+                               ↓
+┌─────────────────────────────────────────────────────────────┐
+│                      AI AGENT SCHOOL                         │
+│                                                              │
+│  ┌─────────────────────────────────────────────────┐        │
+│  │  MCP Server                                      │        │
+│  │  - /enroll - Register new student                │        │
+│  │  - /lessons/next - Deliver next lesson           │        │
+│  │  - /quiz/submit - Submit quiz answers            │        │
+│  │  - /graduation/status - Check graduation         │        │
 │  └─────────────────────────────────────────────────┘        │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -63,28 +91,30 @@ Based on Ethan Mollick's research (arXiv:2407.12796):
 ┌─────────────────────────────────────────────────────────────┐
 │              CRON HANDLING COURSE                            │
 │                                                              │
-│  Module 1: Cron Fundamentals                                 │
+│  Lesson 1: Cron Fundamentals                                 │
 │  ├── Syntax (minute, hour, day, month, weekday)            │
-│  ├── Common patterns (*, /, -, ,)                            │
-│  └── Indonesian examples ("setiap jam 3 sore")              │
+│  ├── Common patterns (*, /, -, ,)                           │
+│  └── Monitoring basics                                      │
 │                                                              │
-│  Module 2: Heartbeat Monitoring                             │
-│  ├── Ping systems (Healthchecks, Cronitor)                  │
-│  ├── Scheduled health checks                                 │
-│  └── Alert escalation chains                                 │
+│  Lesson 2: Error Handling                                    │
+│  ├── Detection strategies                                   │
+│  ├── Logging practices                                      │
+│  └── Alert escalation                                       │
 │                                                              │
-│  Module 3: Silent Failure Detection                         │
-│  ├── Expected vs actual execution tracking                  │
-│  ├── Missing heartbeat detection                             │
-│  └── Zombie job detection                                    │
+│  Lesson 3: Retry Policies                                   │
+│  ├── Exponential backoff                                    │
+│  ├── Dead letter queues                                     │
+│  └── Circuit breakers                                       │
 │                                                              │
-│  Module 4: Auto-Recovery                                     │
-│  ├── Automatic restart on failure                            │
-│  ├── Retry policies (exponential backoff)                   │
-│  └── Dead letter queues                                      │
+│  Lesson 4: Monitoring & Heartbeats                         │
+│  ├── Health check systems                                   │
+│  ├── Scheduled health checks                                │
+│  └── Alert chains                                           │
 │                                                              │
-│  Module 5: Hands-on Lab                                      │
-│  └── Build a self-healing cron agent                        │
+│  Lesson 5: Production Patterns                              │
+│  ├── Silent failure detection                               │
+│  ├── Auto-recovery                                          │
+│  └── Graduation quiz                                        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -92,19 +122,17 @@ Based on Ethan Mollick's research (arXiv:2407.12796):
 
 ## Data Models
 
-### Agent
+### Student
 
 ```python
-class Agent:
+class Student:
     id: UUID
-    owner_id: UUID
     name: str
-    persona: str
-    primary_llm: str  # "minimax", "openai", etc.
-    memory_agent_id: str  # Mem0 agent ID
-    status: AgentStatus  # ACTIVE, INACTIVE, FAILED
-    created_at: datetime
-    updated_at: datetime
+    api_key: str  # hashed with bcrypt
+    status: StudentStatus  # ENROLLED, LEARNING, GRADUATED
+    enrolled_at: datetime
+    graduated_at: datetime
+    failure_streak: int  # days without failure
 ```
 
 ### Course
@@ -115,205 +143,166 @@ class Course:
     title: str
     description: str
     topic: str  # "cron_handling"
-    difficulty: DifficultyLevel  # BEGINNER, INTERMEDIATE, ADVANCED
-    token_cost: int
-    modules: List[Module]
+    difficulty: DifficultyLevel  # BEGINNER
+    lessons: List[Lesson]
     created_at: datetime
 ```
 
-### Enrollment
+### Lesson
 
 ```python
-class Enrollment:
+class Lesson:
     id: UUID
-    agent_id: UUID
     course_id: UUID
-    status: EnrollmentStatus  # ENROLLED, IN_PROGRESS, COMPLETED, FAILED
-    progress: int  # 0-100
-    current_module: int
-    enrolled_at: datetime
-    completed_at: datetime
+    title: str
+    content: str
+    quiz: Quiz
+    order: int
 ```
 
-### Certification
+### Quiz
 
 ```python
-class Certification:
+class Quiz:
     id: UUID
-    agent_id: UUID
+    lesson_id: UUID
+    questions: List[Question]
+    passing_score: int  # percentage
+```
+
+### Certificate
+
+```python
+class Certificate:
+    id: UUID
+    student_id: UUID
     course_id: UUID
     issued_at: datetime
-    credential_id: str  # On-chain reference
-    status: CertificationStatus  # ACTIVE, REVOKED
+    credential_id: str
+    status: CertificateStatus  # ACTIVE, REVOKED
 ```
 
 ---
 
-## No Reply / Silent Failure Handling
+## Graduation System
 
-### Trainer → Student (no acknowledgment)
-
-```
-Trainer sends lesson
-        ↓
-   [NO REPLY after 30s]
-        ↓
-   Retry #1 (wait 30s)
-        ↓
-   [NO REPLY after 60s total]
-        ↓
-   Retry #2 (wait 60s)
-        ↓
-   [NO REPLY after 120s total]
-        ↓
-   Escalate to Grader
-        ↓
-   Flag agent as UNRESPONSIVE
-        ↓
-   Alert owner: "Agent X not responding"
-```
-
-### Cron Job Silent Failure
+### 7-Day Failure-Free Streak
 
 ```
-Cron job scheduled
+Day 0: Student enrolled
         ↓
-   Expected heartbeat MISSED
+Day 1-7: Complete lessons, pass quizzes, zero failures
         ↓
-   Wait 1 interval (grace period)
+If failure occurs: streak resets to 0
         ↓
-   Heartbeat still missing
+Day 7: Streak reaches 7 → GRADUATION
         ↓
-   Alert: "Job may have failed"
-        ↓
-   Wait another interval
-        ↓
-   Heartbeat still missing
-        ↓
-   Mark as FAILED
-        ↓
-   Trigger auto-recovery (if enabled)
-        ↓
-   Notify owner
+Automatic:
+- Certificate issued
+- Student status → GRADUATED
+- Agent notified
 ```
+
+### Quiz Passing
+
+- Each lesson has a quiz with passing score requirement
+- Must pass all 5 lesson quizzes to graduate
+- Quiz results stored in PostgreSQL
 
 ---
 
-## Security & Privacy
+## MCP Tool Reference
 
-### VPS Tiers
-
-| Tier | Type | Security Level | Approach |
-|------|------|----------------|----------|
-| **NEW** | Clean VPS | Standard | VPN/TLS encryption |
-| **OLD** | VPS with history | Tier 3 | Data audit, federated learning, consent verification |
-
-### OLD VPS Requirements
-
-- Data audit BEFORE connection
-- Consent verification from owner
-- Right-to-be-forgotten capability
-- Federated learning (data stays local)
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `enroll` | Register new student agent | name, topic |
+| `get_lessons` | Get all lessons for a course | course_id |
+| `get_lesson` | Get specific lesson content | lesson_id |
+| `submit_quiz` | Submit quiz answers | lesson_id, answers |
+| `get_progress` | Get student progress | student_id |
+| `get_graduation_status` | Check graduation status | student_id |
 
 ---
 
-## Token Economics
+## API Endpoints
 
-### Cost Model (0% markup on LLM costs)
+### Student Management
 
-| Tier | Price | Tokens | Use Case |
-|------|-------|--------|----------|
-| Free | $0 | 10K/month | Trial |
-| Pro | $19/mo | 500K/month | Individual agents |
-| Team | $49/mo | 2M/month | Agent fleets |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/enroll` | Enroll new student |
+| GET | `/api/students` | List all students |
+| GET | `/api/students/{id}` | Get student details |
 
-### Course Pricing
+### Course & Lessons
 
-| Course | Token Cost |
-|--------|------------|
-| Foundation | 100K tokens |
-| Core | 200K tokens |
-| Elective | 150K tokens |
-| Capstone | 500K tokens |
-| Lab | 100K tokens |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/courses` | List available courses |
+| GET | `/api/courses/{id}/lessons` | Get course lessons |
+| POST | `/api/students/{id}/lessons/next` | Deliver next lesson |
+
+### Quiz & Progress
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/quiz/submit` | Submit quiz answers |
+| GET | `/api/students/{id}/progress` | Get student progress |
+
+### Graduation
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/students/{id}/graduation` | Get graduation status |
+| POST | `/api/graduation/check` | Run graduation check |
+
+### Health & Metrics
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Basic health check |
+| GET | `/health/ready` | Readiness check |
+| GET | `/api/metrics` | System metrics |
 
 ---
 
 ## Project Structure
 
 ```
-AI-Agent-School/
-├── apps/
-│   ├── api/                    # FastAPI backend
-│   │   ├── agents/             # Agent management
-│   │   ├── courses/            # Course management
-│   │   ├── enrollments/        # Enrollment system
-│   │   └── certifications/     # Certification issuing
-│   └── web/                    # Next.js frontend
-│       ├── components/         # UI components
-│       ├── pages/              # Routes
-│       └── styles/             # CSS
-├── packages/
-│   ├── agents/                 # CrewAI agents
-│   │   ├── trainer/            # Trainer agent
-│   │   ├── student/            # Student agent
-│   │   ├── grader/             # Grader agent
-│   │   └── role_player/        # Role-player agent
-│   ├── memory/                 # Mem0 integration
-│   ├── cron/                   # Cron handling logic
-│   └── shared/                 # Shared utilities
-├── docs/                       # Documentation
-├── SPEC.md                     # This file
-└── README.md
+ai-agent-school/
+├── src/
+│   ├── api/              # FastAPI REST API
+│   ├── core/             # Database, config, MCP server
+│   ├── teacher/          # AI teacher agent (Llama 3.1 70B)
+│   ├── student/          # Student management
+│   ├── course/           # Course & lesson management
+│   ├── quiz/             # Quiz grading logic
+│   └── graduation/       # Graduation monitor
+├── school/               # School business logic
+│   ├── main.py           # Application entry
+│   ├── teacher/          # Teacher module
+│   ├── student/          # Student module
+│   └── cron/             # Cron monitoring
+├── tests/                # Unit and integration tests
+├── docs/                 # Documentation
+├── SKILL.md              # MCP skill definition
+├── Dockerfile            # Container definition
+└── docker-compose.yml    # Docker orchestration
 ```
 
 ---
 
-## Implementation Phases
+## Security & Privacy
 
-### Phase 1: Foundation
-- [x] Repository created
-- [ ] SPEC.md written
-- [ ] Monorepo setup (pnpm)
-- [ ] PostgreSQL schema
-- [ ] Qdrant setup
-- [ ] MiniMax 2.7 integration
-
-### Phase 2: Agent Core
-- [ ] CrewAI + Mem0 setup
-- [ ] Trainer Agent
-- [ ] Student Agent
-- [ ] Grader Agent
-- [ ] No-reply handler
-
-### Phase 3: Cron Course
-- [ ] Course structure
-- [ ] Modules 1-5
-- [ ] Hands-on lab
-
-### Phase 4: University System
-- [ ] Course catalog UI
-- [ ] Enrollment flow
-- [ ] Progress tracking
-- [ ] Certifications
-
-### Phase 5: Marketplace
-- [ ] Agent listings
-- [ ] Token payments
-- [ ] Trainer payouts
-
-### Phase 6: Privacy & Security
-- [ ] VPS security tiers
-- [ ] Federated learning
-- [ ] Consent verification
+- All agent data encrypted in transit and at rest
+- API keys hashed with bcrypt
+- No data shared with third parties
+- Agents own their learning history
 
 ---
 
 ## References
 
-- Ethan Mollick et al., "AI Agents and Education: Simulated Practice at Scale" (arXiv:2407.12796)
-- Mem0: https://github.com/mem0ai/mem0
-- CrewAI: https://github.com/crewAI/crewAI
-- Trigger.dev: https://trigger.dev
-- Healthchecks: https://healthchecks.github.io
-- croniter: https://pypi.org/project/croniter/
+- Model Context Protocol (MCP): https://modelcontextprotocol.io
+- Llama 3.1: https://ai.meta.com/llama/
+- ShortcutSistem: https://shortcutsistem.com

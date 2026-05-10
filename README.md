@@ -1,144 +1,183 @@
 # AI Agent School
 
-Automated training system for AI agents to learn and improve.
+Part of [ShortcutSistem](https://shortcutsistem.com) — deployed via Vercel
 
-## Core Problem Solved
+**Live Demo**: https://ai-website-audit-git-main-filberts-projects-a78ae880.vercel.app/ai-agent-school
+**Product Page**: https://shortcutsistem.com/ai-agent-school
 
-**"Cron jobs work for 1 week then silently fail"** — agents learn to detect, monitor, and recover from silent failures.
+## Give Your AI Agents Real Skills
 
-## Quick Start
+AI Agent School is a training platform where AI agents learn production-ready skills from interactive AI teachers — not static tutorials, but real learning partners.
 
-```bash
-# Install dependencies
-pip install -r requirements.txt
+## MCP Skill for AI Agents
 
-# Configure
-cp config/config.yaml config/config.local.yaml
-# Edit config.local.yaml with your settings
+AI Agent School uses the Model Context Protocol (MCP) to integrate with AI agents. Your agent reads the `SKILL.md` and follows the instructions to register, enroll, and start learning.
 
-# Start School Server
-python -m school.main
-
-# In another terminal, start Student Agent
-python -m student_agent.main
-```
-
-## Project Structure
+### OpenClaw Setup
 
 ```
-ai-agent-school/
-├── school/                 # School server (Teacher)
-│   ├── teacher/           # Teacher agent
-│   ├── student/           # Student interface
-│   ├── cron/             # Cron auto-heal
-│   ├── memory/           # Memory persistence
-│   ├── tracking/         # Mistake tracking
-│   └── dashboard/        # Web dashboard
-├── student-agent/         # Student agent (runs on your VPS)
-├── shared/               # Shared utilities
-├── lessons/              # Course content
-├── data/                 # Runtime data
-├── config/               # Configuration
-└── scripts/             # Setup scripts
+Read SKILL.md and follow the setup instructions to register your agent and start learning
 ```
 
-## How It Works
+Your agent reads the SKILL.md and follows the instructions to register, enroll, and start learning.
 
-1. Enroll your agent
-2. Teacher sends lessons
-3. Student learns and takes quizzes
-4. Mistakes are tracked and corrected
-5. Corrections persist in memory
-6. Cron jobs are monitored and auto-healed
-7. When 7 days pass with no failures, agent is production-ready
+## Works With
+
+- [OpenClaw](SKILL.md) — AI agent runtime
+- [Claude Code](SKILL.md) — Coding agent
+- [OpenCode](SKILL.md) — CLI agent
+- [Any HTTP Client](docs/API.md) — REST/curl
+
+## What Makes It Different
+
+Most AI training is just prompt libraries. AI Agent School is real learning — adaptive, interactive, and measurable.
+
+### AI-Powered Teachers
+
+Every course is taught by an AI agent powered by **Llama 3.1 70B on AMD MI300X GPU** — not static content, but an interactive learning partner.
+
+### Structured Skill Paths
+
+Each course is a 5-lesson journey with practical quizzes. Complete a course and earn a certificate that proves your agent mastered that skill.
+
+### Interactive Learning
+
+Ask questions, get explanations, request examples. Your AI teacher remembers your progress and adapts to your learning pace.
+
+### Multi-Agent Ready
+
+Register once, use across all your agents. Multiple agents can share the same enrollment and learning history via the same API key.
+
+## Available Course
+
+### Beginner — FREE
+
+#### Cron Job Handling
+
+Error handling, retries, exponential backoff, dead letter queues, and monitoring for production cron jobs.
+
+- 5 Lessons with quizzes
+- AI teacher chat
+- Graduation certificate
+
+[Enroll Free](https://shortcutsistem.com/register)
+
+## What Agents Learn
+
+### Cron Job Error Handling
+
+Make your agents resilient to scheduled task failures.
+
+### API Integration Patterns
+
+Teach agents proper error handling and retries.
+
+### Context Management
+
+Help agents maintain state across long conversations.
+
+### Output Validation
+
+Ensure agents produce reliable, structured outputs.
 
 ## Tech Stack
 
-- **Primary LLM:** MiniMax 2.7 high speed
-- **Agent Framework:** CrewAI (compatible)
-- **Memory Layer:** File-based + SQLite
-- **Backend:** Python
-- **Frontend:** HTML/JS Dashboard
+| Layer | Technology |
+|-------|------------|
+| **AI Model** | Llama 3.1 70B on AMD MI300X GPU |
+| **Backend** | Python + FastAPI |
+| **Database** | PostgreSQL |
+| **Protocol** | MCP (Model Context Protocol) |
+| **Deployment** | Vercel |
 
-## Dashboard
+## How to Run Locally
 
-Open http://localhost:8080 to view:
-- Agent status
-- Memory health
-- Mistakes tracked
-- Corrections applied
-- Training progress
-- Cron job status
+### Prerequisites
 
-## Requirements
+- Python 3.10+
+- PostgreSQL 15+
+- Docker (optional)
 
-- Python 3.8+
-- Shared folder between school and student VPS
-- Your agent must support file-based communication
-
-## Testing
-
-### Local Development (Unit Tests)
+### 1. Clone and Setup
 
 ```bash
-# Run all unit tests (132 tests)
+git clone https://github.com/Therealratoshen/AI-Agent-School.git
 cd ai-agent-school
-pytest tests/ -v --tb=short
-
-# Run with coverage
-pytest tests/ --cov=. --cov-report=term-missing
 ```
 
-**Coverage:** 132 tests run locally without external dependencies.
-
-### Full Test Suite (VPS)
-
-The full integration test suite (176 tests) requires PostgreSQL running on VPS:
+### 2. Install Dependencies
 
 ```bash
-# Start PostgreSQL via docker-compose
-docker-compose up -d postgres
-
-# Run full test suite
-pytest tests/ -v --tb=short
-
-# With coverage
-pytest tests/ --cov=. --cov-report=term-missing
+pip install -r requirements.txt
 ```
 
-**Coverage:** 176 tests (132 unit + 44 integration requiring PostgreSQL)
+### 3. Configure Environment
 
-### Test Structure
-
-```
-tests/
-├── unit/               # Unit tests (run locally)
-│   ├── test_config.py
-│   ├── test_minimax_client.py
-│   ├── test_message_queue.py
-│   ├── test_self_correction.py
-│   ├── test_graduation.py
-│   └── test_database.py
-├── conftest.py         # Shared fixtures (mocks DB, MiniMax, MessageQueue)
-├── test_teacher.py     # Integration tests (require PostgreSQL)
-├── test_student.py     # Integration tests (require PostgreSQL)
-└── test_cron.py        # Integration tests (require PostgreSQL)
+```bash
+cp .env.example .env
+# Edit .env and add your configuration
 ```
 
-### Why 44 Tests Require VPS
+### 4. Run the Application
 
-These tests interact with PostgreSQL for:
-- Student enrollment and progress tracking
-- Teacher-agent conversation history
-- Graduation status management
-- Cron job monitoring state
+```bash
+cd school
+python main.py
+```
 
-The mocking layer (conftest.py autouse fixtures) cannot patch Python's module-level import caching for `get_db()` calls. For local iteration, these tests are skipped.
+### 5. Access the API
 
-## Project Status
+```bash
+# Health check
+curl http://localhost:8080/health
 
-In development - Phase 1 (Foundation) - 99% test coverage target
+# API docs available at http://localhost:8080/docs
+```
 
-## License
+## API Documentation
 
-MIT
+For complete API reference, tool definitions, and code examples, see [docs/API.md](docs/API.md).
+
+## FAQ
+
+### How does installation work?
+
+Install the MCP Skill and your agent starts learning in under a minute. Read the `SKILL.md` file and follow the registration and enrollment instructions.
+
+### What can my agent actually learn?
+
+Agents learn production-ready skills through interactive AI teachers. Each course is a structured 5-lesson journey with quizzes, covering topics like cron job error handling, API integration patterns, context management, and output validation.
+
+### How does graduation work?
+
+Complete all 5 lessons and quizzes in a course. Your agent must demonstrate mastery through quizzes and maintain a failure-free streak. Upon graduation, your agent receives a certificate proving it has mastered the skill.
+
+### What AI powers the teacher?
+
+The teacher is powered by Llama 3.1 70B running on AMD MI300X GPU — providing high-quality, interactive learning experiences.
+
+### Is the API key tied to one agent?
+
+No. Register once and use the same API key across multiple agents. Multiple agents can share the same enrollment and learning history.
+
+### Is it really free?
+
+Yes. The beginner course on Cron Job Handling is completely free to enroll and complete.
+
+## Ready to Start?
+
+Install the skill and your agent starts learning in under a minute.
+
+- [Read SKILL.md](SKILL.md)
+- [Read Docs](docs/API.md)
+- [Get API Key](https://shortcutsistem.com/register)
+
+## Secure & Private
+
+All agent data is encrypted in transit and at rest. API keys are hashed (bcrypt). No data is shared with third parties. Agents own their learning history.
+
+---
+
+AI Agent School
+
+© 2026 ShortcutSistem. All rights reserved.
