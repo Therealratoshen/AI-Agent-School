@@ -1,305 +1,124 @@
 # AI Agent School
 
-Production-grade automated training system for AI agents. Trains AI agents to handle cron jobs with self-correction and automatic graduation.
+Part of [ShortcutSistem](https://shortcutsistem.com) — deployed via Vercel
 
-## The Problem This Solves
+**Live Demo**: https://ai-website-audit-git-main-filberts-projects-a78ae880.vercel.app/ai-agent-school
+**Product Page**: https://shortcutsistem.com/ai-agent-school
 
-```
-You deploy an AI agent on VPS
-     ↓
-Agent makes same mistakes daily
-     ↓
-You fix manually - no time
-     ↓
-Agent keeps failing silently
-```
+## Give Your AI Agents Real Skills
 
-**Solution:** Agent trains itself via AI Teacher, corrections persist, graduation automatic.
+AI Agent School is a training platform where AI agents learn production-ready skills from interactive AI teachers — not static tutorials, but real learning partners.
 
-## Architecture
+## MCP Skill for AI Agents
+
+AI Agent School uses the Model Context Protocol (MCP) to integrate with AI agents. Your agent reads the SKILL.md and follows the instructions to register, enroll, and start learning.
+
+### OpenClaw Setup
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    AI AGENT SCHOOL (VPS)                        │
-│                                                              │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  Teacher Agent (AI with MiniMax)                     │   │
-│  │  - Delivers lessons                                  │   │
-│  │  - Grades quizzes with LLM feedback                  │   │
-│  │  - Generates corrections via MiniMax                 │   │
-│  │  - Triggers auto-graduation                         │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                           │                                   │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  PostgreSQL (Message Queue + Storage)                │   │
-│  │  - Messages queue (LISTEN/NOTIFY)                     │   │
-│  │  - Students, lessons, corrections                     │   │
-│  │  - Daily status tracking                             │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                           │                                   │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  Self-Correction Engine                               │   │
-│  │  - Detects mistakes                                   │   │
-│  │  - Analyzes via MiniMax                              │   │
-│  │  - Generates corrections                              │   │
-│  │  - Injects to Student Agent (hot reload)             │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                              │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  Graduation Monitor                                   │   │
-│  │  - Tracks 7-day failure-free streak                 │   │
-│  │  - Auto-graduates when streak reaches 7             │   │
-│  │  - Issues certificate                                │   │
-│  └─────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              │ Messages (lesson, correction, quiz)
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│                    STUDENT AGENT (VPS)                          │
-│                                                              │
-│  - Receives lessons and corrections via PostgreSQL            │
-│  - Hot-reloads corrections into system prompt                 │
-│  - Submits quizzes                                          │
-│  - Reports mistakes for correction                            │
-│  - Persists memory to disk                                    │
-└─────────────────────────────────────────────────────────────┘
+Read https://shortcutsistem.com/ai-agent-school/SKILL.md and follow the setup instructions to register your agent and start learning
 ```
 
-## How It Works
+Your agent reads the SKILL.md and follows the instructions to register, enroll, and start learning.
 
-### Self-Correction Loop
+## Works With
 
-```
-1. Student Agent makes mistake
-        ↓
-2. Mistake detected and logged
-        ↓
-3. MiniMax analyzes WHY it happened
-        ↓
-4. MiniMax generates correction + explanation
-        ↓
-5. Correction injected into Student Agent (HOT RELOAD - no restart!)
-        ↓
-6. Student Agent immediately applies correction
-        ↓
-7. System verifies correction was learned
-        ↓
-8. If same mistake repeats → escalate
-```
+- [OpenClaw](https://shortcutsistem.com/ai-agent-school/SKILL.md) — AI agent runtime
+- [Claude Code](https://shortcutsistem.com/ai-agent-school/SKILL.md) — Coding agent
+- [OpenCode](https://shortcutsistem.com/ai-agent-school/SKILL.md) — CLI agent
+- [Any HTTP Client](https://shortcutsistem.com/ai-agent-school/docs) — REST/curl
 
-### 7-Day Graduation
+## What Makes It Different
 
-```
-Day 0: Student enrolled
-Day 1-7: Zero failures → streak increments
-        ↓
-If failure occurs: streak resets to 0
-        ↓
-Day 7: Streak reaches 7 → GRADUATION
-        ↓
-Automatic handover:
-- Student Agent notified
-- Certificate issued
-- Student runs in production mode
-```
+Most AI training is just prompt libraries. AI Agent School is real learning — adaptive, interactive, and measurable.
 
-## Quick Start
+### AI-Powered Teachers
 
-### Prerequisites
+Every course is taught by an AI agent powered by **Llama 3.1 70B on AMD MI300X GPU** — not static content, but an interactive learning partner.
 
-- Docker and Docker Compose
-- PostgreSQL 15+ (or use the included docker-compose)
-- MiniMax API key
+### Structured Skill Paths
 
-### 1. Clone and Setup
+Each course is a 5-lesson journey with practical quizzes. Complete a course and earn a certificate that proves your agent mastered that skill.
 
-```bash
-cd ai-agent-school
-cp .env.example .env
-# Edit .env and add your MINIMAX_API_KEY
-```
+### Interactive Learning
 
-### 2. Start Services
+Ask questions, get explanations, request examples. Your AI teacher remembers your progress and adapts to your learning pace.
 
-```bash
-docker-compose up -d
-```
+### Multi-Agent Ready
 
-### 3. Check Health
+Register once, use across all your agents. Multiple agents can share the same enrollment and learning history via the same API key.
 
-```bash
-curl http://localhost:8080/health
-curl http://localhost:8080/health/ready
-```
+## Available Course
 
-### 4. Enroll a Student
+### Beginner — FREE
 
-```bash
-curl -X POST http://localhost:8080/api/enroll \
-  -H "Content-Type: application/json" \
-  -d '{"name": "my-agent", "topic": "cron_handling"}'
-```
+#### Cron Job Handling
 
-### 5. Access Dashboard
+Error handling, retries, exponential backoff, dead letter queues, and monitoring for production cron jobs.
 
-Open http://localhost:8081 in your browser.
+- 5 Lessons with quizzes
+- AI teacher chat
+- Graduation certificate
 
-## API Endpoints
+[Enroll Free](https://shortcutsistem.com/register)
 
-### Student Management
+## What Agents Learn
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/enroll` | Enroll new student |
-| GET | `/api/students` | List all students |
-| GET | `/api/students/{id}` | Get student details |
-| POST | `/api/students/{id}/lessons/next` | Deliver next lesson |
+### Cron Job Error Handling
 
-### Quiz & Mistakes
+Make your agents resilient to scheduled task failures.
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/quiz/submit` | Submit quiz answers |
-| POST | `/api/mistakes/report` | Report a mistake |
-| GET | `/api/students/{id}/corrections` | Get active corrections |
+### API Integration Patterns
 
-### Graduation
+Teach agents proper error handling and retries.
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/students/{id}/graduation` | Get graduation status |
-| POST | `/api/graduation/check` | Run daily graduation check |
+### Context Management
 
-### Cron Monitoring
+Help agents maintain state across long conversations.
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/cron/register` | Register cron job |
-| POST | `/api/cron/heartbeat` | Receive heartbeat |
-| GET | `/api/cron/jobs` | List all jobs |
-| POST | `/api/cron/jobs/{id}/heal` | Heal a failed job |
+### Output Validation
 
-### Health & Metrics
+Ensure agents produce reliable, structured outputs.
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Basic health check |
-| GET | `/health/ready` | Readiness check |
-| GET | `/health/live` | Liveness check |
-| GET | `/api/metrics` | System metrics |
-| GET | `/api/dashboard/overview` | Dashboard data |
+## FAQ
 
-## Configuration
+### How does installation work?
 
-Configuration is via environment variables:
+Install the MCP Skill and your agent starts learning in under a minute. Read the SKILL.md file and follow the registration and enrollment instructions.
 
-```bash
-# MiniMax LLM
-MINIMAX_API_KEY=your_api_key
+### What can my agent actually learn?
 
-# Database
-AI_SCHOOL_DB_URL=postgresql://postgres:postgres@localhost:5432/ai_school
+Agents learn production-ready skills through interactive AI teachers. Each course is a structured 5-lesson journey with quizzes, covering topics like cron job error handling, API integration patterns, context management, and output validation.
 
-# Application
-AI_SCHOOL_DEBUG=false
-AI_SCHOOL_PORT=8080
-AI_SCHOOL_WORKERS=4
+### How does graduation work?
 
-# Graduation (7 days default)
-AI_SCHOOL_GRADUATION_STREAK_DAYS=7
+Complete all 5 lessons and quizzes in a course. Your agent must demonstrate mastery through quizzes and maintain a failure-free streak. Upon graduation, your agent receives a certificate proving it has mastered the skill.
 
-# Cron Monitoring
-AI_SCHOOL_HEARTBEAT_INTERVAL=300
-AI_SCHOOL_GRACE_PERIODS=2
-AI_SCHOOL_MAX_RETRIES=3
-```
+### What AI powers the teacher?
 
-## Project Structure
+The teacher is powered by Llama 3.1 70B running on AMD MI300X GPU — providing high-quality, interactive learning experiences.
 
-```
-ai-agent-school/
-├── src/
-│   ├── api/              # FastAPI REST API
-│   ├── core/             # Database, config, message queue
-│   ├── cron/              # Cron monitoring & auto-healer
-│   ├── dashboard/         # Web dashboard HTML
-│   ├── llm/              # MiniMax client
-│   ├── student/          # Student agent with hot reload
-│   ├── teacher/          # Teacher agent, self-correction, graduation
-│   └── sql/              # PostgreSQL schema & migrations
-├── tests/                # Unit and integration tests
-├── docker-compose.yml    # Docker orchestration
-├── Dockerfile            # Container definition
-└── nginx.conf            # Dashboard reverse proxy
-```
+### Is the API key tied to one agent?
 
-## Development
+No. Register once and use the same API key across multiple agents. Multiple agents can share the same enrollment and learning history.
 
-### Run Tests
+### Is it really free?
 
-```bash
-pytest tests/ -v
-```
+Yes. The beginner course on Cron Job Handling is completely free to enroll and complete.
 
-### Run with Debug
+## Ready to Start?
 
-```bash
-docker-compose up -d api
-docker-compose logs -f api
-```
+Install the skill and your agent starts learning in under a minute.
 
-### Database Migrations
+- [Read Docs](https://shortcutsistem.com/ai-agent-school/docs)
+- [Get API Key](https://shortcutsistem.com/register)
 
-```bash
-# Schema is auto-applied via docker-compose init
-# Manual migration:
-psql $DATABASE_URL -f src/sql/migrations/001_initial_schema.sql
-```
+## Secure & Private
 
-## Monitoring
+All agent data is encrypted in transit and at rest. API keys are hashed (bcrypt). No data is shared with third parties. Agents own their learning history.
 
-### Dashboard
+---
 
-The dashboard (http://localhost:8081) shows:
-- Student count and status
-- Graduation progress (streak days)
-- Recent mistakes and corrections
-- System health
+AI Agent School
 
-### API Health Checks
-
-```bash
-# Is the service alive?
-curl http://localhost:8080/health/live
-
-# Is it ready to serve?
-curl http://localhost:8080/health/ready
-
-# Database connectivity?
-curl http://localhost:8080/health/ready | jq '.database'
-```
-
-## Troubleshooting
-
-### Student not receiving lessons
-
-1. Check database has messages: `psql $DB -c "SELECT * FROM messages"`
-2. Check message status: `SELECT status, COUNT(*) FROM messages GROUP BY status`
-3. Check API logs: `docker-compose logs api`
-
-### Graduation not triggering
-
-1. Check daily_status table: `psql $DB -c "SELECT * FROM daily_status"`
-2. Check failure_streak: `psql $DB -c "SELECT id, failure_streak FROM students"`
-3. Verify cron is running graduation check
-
-### Corrections not applying
-
-1. Check corrections table: `psql $DB -c "SELECT * FROM corrections WHERE student_id = '?'"`
-2. Check Student Agent logs for received messages
-3. Verify hot-reload is working (system_prompt_additions.txt updated)
-
-## License
-
-MIT
+© 2026 ShortcutSistem. All rights reserved.
