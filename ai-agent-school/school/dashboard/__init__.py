@@ -1,5 +1,5 @@
 # Dashboard Module
 
-from .app import DashboardApp
+from .api import DashboardAPI, create_dashboard_api
 
-__all__ = ['DashboardApp']
+__all__ = ['DashboardAPI', 'create_dashboard_api']

@@ -50,3 +50,5 @@ out/
 venv/
 *.pyc
 __pycache__/
+data/
+logs/
