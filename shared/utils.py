@@ -4,7 +4,8 @@ import os
 import json
 import logging
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
+from typing import Any
 
 def setup_logging(name: str, log_file: str = None) -> logging.Logger:
     logger = logging.getLogger(name)
@@ -31,19 +32,23 @@ def setup_logging(name: str, log_file: str = None) -> logging.Logger:
 def ensure_dir(path: str) -> None:
     os.makedirs(path, exist_ok=True)
 
-def read_json(path: str) -> dict:
+def read_json(path: str, default: Any = None) -> Any:
+    if default is None:
+        default = {}
     if not os.path.exists(path):
-        return {}
+        return default
     with open(path, 'r') as f:
         return json.load(f)
 
 def write_json(path: str, data: dict) -> None:
-    ensure_dir(os.path.dirname(path))
+    parent = os.path.dirname(path)
+    if parent:
+        ensure_dir(parent)
     with open(path, 'w') as f:
         json.dump(data, f, indent=2)
 
 def timestamp() -> str:
-    return datetime.utcnow().isoformat()
+    return datetime.now(timezone.utc).isoformat()
 
 def generate_id(prefix: str = "") -> str:
     import uuid
@@ -60,6 +65,6 @@ def safe_json_read(path: str, default: dict = None) -> dict:
     if default is None:
         default = {}
     try:
-        return read_json(path)
+        return read_json(path, default)
     except Exception:
         return default

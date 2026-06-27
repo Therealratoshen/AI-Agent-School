@@ -6,7 +6,7 @@ import yaml
 import argparse
 from typing import Dict, Any
 
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from shared import setup_logging, ensure_dir
 from school.teacher import TeacherAgent, FileCommunicator
