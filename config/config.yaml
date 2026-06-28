@@ -9,10 +9,10 @@ school:
 
 communication:
   method: "file"  # file-based for MVP
-  base_dir: "/shared/ai-school"
-  to_student: "/shared/ai-school/to_student"
-  from_student: "/shared/ai-school/from_student"
-  poll_interval: 5  # seconds
+  base_dir: "./data/comm"
+  to_student: "./data/comm/to_student"
+  from_student: "./data/comm/from_student"
+  poll_interval: 2  # seconds
 
 memory:
   backup_enabled: true

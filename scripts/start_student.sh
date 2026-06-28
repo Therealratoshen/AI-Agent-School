@@ -3,10 +3,8 @@
 
 cd "$(dirname "$0")/.."
 
-echo "🤖 Starting Student Agent..."
+echo "Starting Student Agent..."
 
-# Create memory directory if not exists
-mkdir -p memory
+mkdir -p data/comm/to_student data/comm/from_student data/student_memory logs
 
-# Run student agent
-python3 -m student_agent.main
+python3 -m student_agent.main --auto-submit-quiz "$@"

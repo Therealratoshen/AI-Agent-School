@@ -3,13 +3,8 @@
 
 cd "$(dirname "$0")/.."
 
-echo "🎓 Starting AI Agent School Server..."
+echo "Starting AI Agent School Server..."
 
-# Check if config exists
-if [ ! -f config/config.yaml ]; then
-    echo "Config not found. Copying from example..."
-    cp config/config.example.yaml config/config.yaml
-fi
+mkdir -p data/comm/to_student data/comm/from_student data/student_memory logs
 
-# Run school server
-python3 -m school.main
+python3 -m school.main "$@"

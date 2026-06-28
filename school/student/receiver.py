@@ -35,22 +35,29 @@ class StudentReceiver:
         ensure_dir(self.from_student_dir)
 
     def check_for_lessons(self) -> list:
-        """Check for new lessons from teacher"""
-        import glob
-        messages = []
+        """Check for new lessons from teacher (student-side)."""
+        return self._read_messages(self.to_student_dir, "lesson")
 
-        pattern = os.path.join(self.to_student_dir, "*.json")
+    def check_for_messages(self) -> list:
+        """Check for messages from student (school-side)."""
+        return self._read_messages(self.from_student_dir, "student message")
+
+    def _read_messages(self, directory: str, label: str) -> list:
+        import glob
+        import json
+
+        messages = []
+        pattern = os.path.join(directory, "*.json")
         for filepath in glob.glob(pattern):
             try:
-                import json
                 with open(filepath) as f:
                     message = json.load(f)
                     messages.append(message)
 
                 os.remove(filepath)
-                logger.info(f"Received lesson: {message.get('type')}")
+                logger.info(f"Received {label}: {message.get('type')}")
             except Exception as e:
-                logger.error(f"Failed to read lesson: {e}")
+                logger.error(f"Failed to read {label} from {filepath}: {e}")
 
         return messages
 

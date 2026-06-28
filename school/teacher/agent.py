@@ -74,12 +74,17 @@ Available Courses:
 
         first_lesson = self.lesson_manager.get_lesson(1)
 
+        if first_lesson:
+            self.deliver_lesson(1)
+
+        first_lesson_data = first_lesson.to_dict() if first_lesson and hasattr(first_lesson, "to_dict") else first_lesson
+
         return {
             "status": "enrolled",
             "student_id": student_id,
             "teacher": self.name,
             "topic": self.topic,
-            "first_lesson": first_lesson,
+            "first_lesson": first_lesson_data,
             "total_lessons": self.lesson_manager.total_lessons()
         }
 
@@ -92,12 +97,14 @@ Available Courses:
         if not lesson:
             return {"status": "error", "message": f"Lesson {lesson_number} not found"}
 
+        lesson_data = lesson.to_dict() if hasattr(lesson, "to_dict") else lesson
+
         message = {
             "type": MessageType.LESSON,
             "sender": self.name,
             "recipient": self.student_id,
             "payload": {
-                "lesson": lesson,
+                "lesson": lesson_data,
                 "lesson_number": lesson_number,
                 "total_lessons": self.lesson_manager.total_lessons()
             }
@@ -153,16 +160,21 @@ Available Courses:
 
         if result["passed"]:
             self.lessons_completed.append(lesson_id)
+            self.current_lesson_index += 1
+            next_lesson_num = self.current_lesson_index + 1
             self.communicator.send_to_student({
                 "type": MessageType.QUIZ,
                 "sender": self.name,
                 "recipient": self.student_id,
                 "payload": {
                     "result": result,
-                    "next_lesson": self.current_lesson_index + 1
+                    "next_lesson": next_lesson_num if next_lesson_num <= self.lesson_manager.total_lessons() else None
                 }
             })
             logger.info(f"Student passed quiz: {lesson_id}")
+
+            if next_lesson_num <= self.lesson_manager.total_lessons():
+                self.deliver_lesson(next_lesson_num)
         else:
             self.communicator.send_to_student({
                 "type": MessageType.QUIZ,

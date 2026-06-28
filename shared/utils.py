@@ -31,9 +31,11 @@ def setup_logging(name: str, log_file: str = None) -> logging.Logger:
 def ensure_dir(path: str) -> None:
     os.makedirs(path, exist_ok=True)
 
-def read_json(path: str) -> dict:
+def read_json(path: str, default=None):
+    if default is None:
+        default = {}
     if not os.path.exists(path):
-        return {}
+        return default
     with open(path, 'r') as f:
         return json.load(f)
 
