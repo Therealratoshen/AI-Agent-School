@@ -8,18 +8,27 @@ school:
   production_threshold_days: 7
 
 communication:
-  method: "file"  # file-based for MVP
+  method: "file"  # file | mcp | cloud_mcp
   base_dir: "./data/comm"
   to_student: "./data/comm/to_student"
   from_student: "./data/comm/from_student"
   poll_interval: 2  # seconds
+
+mcp:
+  # Local:  http://localhost:8080/api/mcp
+  # Cloud:  https://shortcutsistem.com/api/mcp
+  base_url: "http://localhost:8080/api/mcp"
+  api_key: ""  # or set AI_SCHOOL_API_KEY env var
+  agent_id: "student-agent"
+  agent_name: "Student Agent"
+  course_id: "cron_handling"
 
 memory:
   backup_enabled: true
   backup_interval: 86400  # daily
   backup_path: "./data/backups"
   verify_writes: true
-  student_memory_path: "/home/user/openclaw/memory"
+  student_memory_path: "./data/student_memory"
 
 tracking:
   enabled: true

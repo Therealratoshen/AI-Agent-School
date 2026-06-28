@@ -1,4 +1,4 @@
-# Student Agent - Receives lessons from Teacher and learns
+# Student Agent - connects via file bus OR MCP (local/cloud)
 
 import os
 import sys
@@ -14,6 +14,7 @@ from shared import (
     MessageType, timestamp, generate_id,
     setup_logging, ensure_dir, read_json, write_json
 )
+from student_agent.connector import get_connector, StudentConnector, MCPConnector
 
 logger = setup_logging(__name__, "./logs/student_agent.log")
 
@@ -31,74 +32,61 @@ def load_config(config_path: Optional[str] = None) -> Dict[str, Any]:
 
     return {
         "communication": {
+            "method": "file",
             "base_dir": "./data/comm",
             "to_student": "./data/comm/to_student",
             "from_student": "./data/comm/from_student",
             "poll_interval": 2,
         },
-        "memory": {
-            "student_memory_path": "./data/student_memory",
-        },
+        "memory": {"student_memory_path": "./data/student_memory"},
+        "mcp": {"base_url": "http://localhost:8080/api/mcp"},
     }
 
 
 class StudentAgent:
     """
-    Student Agent - Receives lessons from Teacher and learns
+    Student Agent — learns from Teacher via file bus or MCP.
+
+    Connection modes (config communication.method):
+      - file      → local JSON files in ./data/comm/
+      - mcp       → HTTP MCP to local school (localhost:8080/api/mcp)
+      - cloud_mcp → HTTP MCP to shortcutsistem.com (set mcp.base_url)
     """
 
     def __init__(self, config: Dict[str, Any]):
         self.config = config
-        self.comm_config = config.get("communication", {})
-        self.base_dir = self.comm_config.get("base_dir", "./data/comm")
-        self.to_student_dir = self.comm_config.get("to_student")
-        self.from_student_dir = self.comm_config.get("from_student")
-        self.poll_interval = self.comm_config.get("poll_interval", 2)
-
         self.memory_path = config.get("memory", {}).get("student_memory_path", "./data/student_memory")
+        self.poll_interval = config.get("communication", {}).get("poll_interval", 2)
         ensure_dir(self.memory_path)
-        ensure_dir(self.to_student_dir)
-        ensure_dir(self.from_student_dir)
 
+        self.connector: StudentConnector = get_connector(config)
         self.current_lesson: Optional[Dict[str, Any]] = None
         self.learned_corrections: List[str] = []
         self.auto_submit_quiz = config.get("student", {}).get("auto_submit_quiz", False)
+        self.current_lesson_number = 0
 
-        logger.info("Student Agent initialized")
+        logger.info(f"Student Agent initialized (mode={self.connector.mode})")
 
     def check_for_messages(self) -> list:
-        """Check for new messages from teacher"""
-        messages = []
-        import glob
-
-        for filepath in glob.glob(os.path.join(self.to_student_dir, "*.json")):
-            try:
-                with open(filepath) as f:
-                    message = json.load(f)
-                    messages.append(message)
-                os.remove(filepath)
-                logger.info(f"Received message: {message.get('type')}")
-            except Exception as e:
-                logger.error(f"Failed to read message: {e}")
-
-        return messages
+        return self.connector.poll_messages()
 
     def process_message(self, message: Dict[str, Any]) -> None:
-        """Process incoming message from teacher"""
         msg_type = message.get("type")
         payload = message.get("payload", {})
 
-        if msg_type in (MessageType.LESSON, MessageType.LESSON.value):
+        if msg_type in (MessageType.LESSON, MessageType.LESSON.value, "lesson"):
             self._process_lesson(payload)
-        elif msg_type in (MessageType.QUIZ, MessageType.QUIZ.value):
+        elif msg_type in (MessageType.QUIZ, MessageType.QUIZ.value, "quiz"):
             self._process_quiz_result(payload)
-        elif msg_type in (MessageType.CORRECTION, MessageType.CORRECTION.value):
+        elif msg_type in (MessageType.CORRECTION, MessageType.CORRECTION.value, "correction"):
             self._process_correction(payload)
+        elif msg_type in (MessageType.GRADUATION, "graduation"):
+            self._process_graduation(payload)
 
     def _process_lesson(self, payload: Dict[str, Any]) -> None:
-        """Process incoming lesson"""
         lesson = payload.get("lesson", {})
         self.current_lesson = lesson
+        self.current_lesson_number = payload.get("lesson_number", self.current_lesson_number)
 
         self._save_to_memory({
             "type": "lesson",
@@ -109,14 +97,13 @@ class StudentAgent:
         })
 
         logger.info(f"Lesson received: {lesson.get('title')}")
-        self._send_status("lesson_received", {"lesson_id": lesson.get("id")})
+        self.connector.send_status("lesson_received", {"lesson_id": lesson.get("id")})
 
         if self.auto_submit_quiz and lesson.get("quiz"):
             answers = self._build_quiz_answers(lesson)
             self.submit_quiz(lesson.get("id"), answers)
 
     def _build_quiz_answers(self, lesson: Dict[str, Any]) -> Dict[str, str]:
-        """Build quiz answers from lesson content (for demo/testing)."""
         answers = {}
         for question in lesson.get("quiz", []):
             q_id = question.get("id")
@@ -126,7 +113,6 @@ class StudentAgent:
         return answers
 
     def _process_quiz_result(self, payload: Dict[str, Any]) -> None:
-        """Process quiz result from teacher"""
         result = payload.get("result", payload)
         next_lesson = payload.get("next_lesson")
 
@@ -139,32 +125,31 @@ class StudentAgent:
         })
 
         logger.info(f"Quiz result: passed={result.get('passed')}, score={result.get('score')}")
-
         if result.get("passed") and next_lesson:
             logger.info(f"Ready for next lesson: {next_lesson}")
 
     def _process_correction(self, payload: Dict[str, Any]) -> None:
-        """Process correction from teacher"""
         correction = {
-            "id": payload.get("id"),
+            "id": payload.get("id") or payload.get("correction_id"),
             "mistake": payload.get("mistake"),
-            "correct": payload.get("correct_answer"),
+            "correct": payload.get("correct_answer") or payload.get("correction"),
             "explanation": payload.get("explanation"),
             "received_at": timestamp(),
         }
-
         self._save_correction(correction)
         self._inject_correction(correction)
         self.learned_corrections.append(correction["id"])
         logger.info(f"Correction received: {correction['id']}")
 
+    def _process_graduation(self, payload: Dict[str, Any]) -> None:
+        write_json(os.path.join(self.memory_path, "graduation.json"), payload)
+        logger.info(f"Graduated! Certificate: {payload.get('certificate_id')}")
+
     def _save_to_memory(self, data: Dict[str, Any]) -> None:
         lessons_file = os.path.join(self.memory_path, "lessons.json")
         lessons = read_json(lessons_file, {})
-
         if data.get("lesson_id"):
             lessons[data["lesson_id"]] = data
-
         write_json(lessons_file, lessons)
 
     def _save_correction(self, correction: Dict[str, Any]) -> None:
@@ -182,49 +167,23 @@ IMPORTANT REMINDER:
 
 Always remember this. Do not repeat this mistake.
 """
-        system_prompt_file = os.path.join(self.memory_path, "system_prompt_additions.txt")
-        with open(system_prompt_file, "a") as f:
+        with open(os.path.join(self.memory_path, "system_prompt_additions.txt"), "a") as f:
             f.write(prompt_addition)
 
-    def _send_status(self, status: str, details: Dict[str, Any] = None) -> None:
-        ensure_dir(self.from_student_dir)
-        message = {
-            "type": MessageType.STATUS,
-            "sender": "student",
-            "recipient": "teacher",
-            "payload": {
-                "status": status,
-                "details": details or {},
-                "timestamp": timestamp(),
-            },
-        }
-        filepath = os.path.join(self.from_student_dir, f"{generate_id('status_')}.json")
-        with open(filepath, "w") as f:
-            json.dump(message, f, indent=2)
-
     def submit_quiz(self, lesson_id: str, answers: Dict[str, str]) -> None:
-        ensure_dir(self.from_student_dir)
-        message = {
-            "type": MessageType.QUIZ_SUBMISSION,
-            "sender": "student",
-            "recipient": "teacher",
-            "payload": {
-                "lesson_id": lesson_id,
-                "answers": answers,
-                "submitted_at": timestamp(),
-            },
-        }
-        filepath = os.path.join(self.from_student_dir, f"{generate_id('quiz_')}.json")
-        with open(filepath, "w") as f:
-            json.dump(message, f, indent=2)
+        self.connector.submit_quiz(lesson_id, answers)
         logger.info(f"Quiz submitted for lesson: {lesson_id}")
 
+    def chat_with_teacher(self, message: str) -> Dict[str, Any]:
+        """Ask the Teacher a question (MCP mode only)."""
+        if isinstance(self.connector, MCPConnector):
+            return self.connector.chat(message)
+        return {"response": "Chat requires MCP mode. Set communication.method to 'mcp'."}
+
     def get_corrections(self) -> list:
-        corrections_file = os.path.join(self.memory_path, "corrections.json")
-        return read_json(corrections_file, [])
+        return read_json(os.path.join(self.memory_path, "corrections.json"), [])
 
     def tick(self) -> int:
-        """Process one batch of teacher messages."""
         messages = self.check_for_messages()
         for message in messages:
             self.process_message(message)
@@ -232,22 +191,41 @@ Always remember this. Do not repeat this mistake.
 
     def get_state(self) -> Dict[str, Any]:
         lessons = read_json(os.path.join(self.memory_path, "lessons.json"), {})
-        corrections = read_json(os.path.join(self.memory_path, "corrections.json"), [])
         return {
+            "connection_mode": self.connector.mode,
             "current_lesson": self.current_lesson.get("id") if self.current_lesson else None,
             "lessons_learned": list(lessons.keys()),
-            "corrections_count": len(corrections),
+            "corrections_count": len(self.get_corrections()),
             "memory_path": self.memory_path,
         }
 
     def answer_benchmark(self, topic: str = "cron_handling") -> Dict[str, str]:
-        """Answer benchmark questions using lessons stored in memory."""
         from school.benchmark.solver import solve_from_memory
-
         return solve_from_memory(self.memory_path, topic)
 
+    def run_learning_loop(self, max_lessons: int = 5) -> Dict[str, Any]:
+        """Complete up to max_lessons via any connection mode."""
+        lessons_done = 0
+        for _ in range(max_lessons * 30):
+            self.tick()
+            state = self.get_state()
+            lessons_done = len(state["lessons_learned"])
+            if lessons_done >= max_lessons:
+                break
+            time.sleep(self.poll_interval)
+
+        if isinstance(self.connector, MCPConnector):
+            try:
+                bench = self.connector.client.run_benchmark(self.answer_benchmark())
+                grad = self.connector.client.check_graduation()
+                return {"state": self.get_state(), "benchmark": bench, "graduation": grad}
+            except Exception as e:
+                logger.warning(f"MCP benchmark/graduation check: {e}")
+
+        return {"state": self.get_state()}
+
     def run_loop(self) -> None:
-        logger.info("Starting Student Agent loop...")
+        logger.info(f"Starting Student Agent loop (mode={self.connector.mode})...")
         while True:
             try:
                 self.tick()
@@ -263,18 +241,40 @@ Always remember this. Do not repeat this mistake.
 def main():
     parser = argparse.ArgumentParser(description="AI Agent School - Student Agent")
     parser.add_argument("--config", "-c", help="Path to config file", default=None)
-    parser.add_argument(
-        "--auto-submit-quiz",
-        action="store_true",
-        help="Automatically submit correct quiz answers when a lesson arrives",
-    )
+    parser.add_argument("--mode", choices=["file", "mcp", "cloud_mcp"], help="Connection mode")
+    parser.add_argument("--mcp-url", help="MCP base URL (e.g. http://localhost:8080/api/mcp)")
+    parser.add_argument("--api-key", help="MCP API key (or set AI_SCHOOL_API_KEY)")
+    parser.add_argument("--agent-id", default="student-agent", help="Agent ID for MCP registration")
+    parser.add_argument("--auto-submit-quiz", action="store_true")
+    parser.add_argument("--learn", type=int, metavar="N", help="Complete N lessons then exit")
+    parser.add_argument("--chat", metavar="MSG", help="Send one message to Teacher (MCP mode)")
     args = parser.parse_args()
 
     config = load_config(args.config)
+
+    if args.mode:
+        config.setdefault("communication", {})["method"] = args.mode
+    if args.mcp_url:
+        config.setdefault("mcp", {})["base_url"] = args.mcp_url
+    if args.api_key:
+        config.setdefault("mcp", {})["api_key"] = args.api_key
+    if args.agent_id:
+        config.setdefault("mcp", {})["agent_id"] = args.agent_id
     if args.auto_submit_quiz:
         config.setdefault("student", {})["auto_submit_quiz"] = True
 
     agent = StudentAgent(config)
+
+    if args.chat:
+        result = agent.chat_with_teacher(args.chat)
+        print(json.dumps(result, indent=2))
+        return
+
+    if args.learn:
+        result = agent.run_learning_loop(max_lessons=args.learn)
+        print(json.dumps(result, indent=2))
+        return
+
     agent.run_loop()
 
 

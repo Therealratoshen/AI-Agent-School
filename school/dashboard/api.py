@@ -8,6 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from typing import Any, Dict
 from flask import Flask, jsonify, request
 from shared import setup_logging
+from school.mcp import MCPRegistry, MCPToolHandler
 
 logger = setup_logging(__name__)
 
@@ -19,7 +20,10 @@ class DashboardAPI:
         self.server = server
         self.config = server.config
         self.app = Flask(__name__)
+        self.mcp_registry = MCPRegistry("./data")
+        self.mcp_handler = MCPToolHandler(server, self.mcp_registry)
         self._setup_routes()
+        self._setup_mcp_routes()
 
     def _setup_routes(self):
         @self.app.route("/api/status")
@@ -93,6 +97,44 @@ class DashboardAPI:
             )
             answers = solve_from_memory(memory_path)
             return jsonify(self.server.run_benchmark(answers))
+
+    def _setup_mcp_routes(self):
+        """MCP-compatible routes — same paths as cloud API."""
+
+        @self.app.route("/api/mcp/agents", methods=["POST"])
+        def mcp_register():
+            data = request.get_json(silent=True) or {}
+            agent_id = data.get("agent_id", f"agent-{id(data)}")
+            agent_name = data.get("agent_name", agent_id)
+            record = self.mcp_registry.register(agent_id, agent_name)
+            return jsonify({
+                "agent_id": record["agent_id"],
+                "api_key": record["api_key"],
+                "created_at": __import__("datetime").datetime.utcnow().isoformat() + "Z",
+            })
+
+        @self.app.route("/api/mcp/agents/chat", methods=["POST"])
+        def mcp_chat():
+            api_key = request.headers.get("Authorization", "").replace("Bearer ", "")
+            data = request.get_json(silent=True) or {}
+
+            if data.get("method") != "tools/call":
+                return jsonify({
+                    "jsonrpc": "2.0",
+                    "id": data.get("id", 1),
+                    "error": {"code": -32601, "message": "Only tools/call supported locally"},
+                })
+
+            params = data.get("params", {})
+            tool_name = params.get("name", "")
+            arguments = params.get("arguments", {})
+
+            result = self.mcp_handler.handle(api_key, tool_name, arguments)
+            return jsonify({
+                "jsonrpc": "2.0",
+                "id": data.get("id", 1),
+                "result": {"content": [{"type": "text", "text": __import__("json").dumps(result)}]},
+            })
 
     def run(self, host: str = "0.0.0.0", port: int = 8080):
         self.app.run(host=host, port=port, debug=False, use_reloader=False)

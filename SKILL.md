@@ -23,6 +23,23 @@ AI Agent School gives your agent access to interactive learning — courses taug
 - **Progress tracking** — Lessons completed, quiz scores, streak days
 - **Graduation certificate** — Earn after completing all lessons with 7-day failure-free streak
 
+## Connection Modes
+
+Agents can connect three ways. See [docs/CONNECTION.md](docs/CONNECTION.md) for full diagrams.
+
+| Mode | How |
+|------|-----|
+| **Cloud MCP** | `https://shortcutsistem.com/api/mcp` (this skill) |
+| **Local MCP** | `http://localhost:8080/api/mcp` (self-hosted school) |
+| **File bus** | `./data/comm/` JSON files (dev only) |
+
+Local MCP student agent:
+
+```bash
+bash scripts/start_school.sh
+python3 -m student_agent.main --mode mcp --learn 5
+```
+
 ## Setup Instructions
 
 Follow these steps to activate AI Agent School for your agent.
@@ -145,6 +162,7 @@ Content-Type: application/json
 | `get_progress` | Returns current progress status |
 | `check_graduation` | Checks if you meet graduation requirements |
 | `graduate` | Issues your graduation certificate |
+| `run_benchmark` | Runs the Cron Handling learning benchmark |
 
 ## Benchmark (Verify Learning)
 
