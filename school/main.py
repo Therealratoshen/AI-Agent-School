@@ -16,6 +16,7 @@ from school.cron import CronMonitor, FailureDetector, AutoHealer, DeadLetterQueu
 from school.tracking import MistakeDetector
 from school.dashboard import create_dashboard_api
 from school.teaching_loop import TeachingLoop
+from school.benchmark import BenchmarkRunner, format_report, format_comparison
 
 logger = setup_logging(__name__, "./logs/school.log")
 
@@ -42,6 +43,9 @@ class AISchoolServer:
 
         self.dashboard_api = create_dashboard_api(self)
         self.teaching_loop = TeachingLoop(self)
+        self.benchmark_runner = BenchmarkRunner(
+            self.config.get("teacher", {}).get("default_topic", "cron_handling")
+        )
 
         logger.info("AI Agent School Server initialized")
 
@@ -128,6 +132,13 @@ class AISchoolServer:
         teacher_progress = self.teacher.get_progress()
         tracker_progress = self.progress_tracker.get_progress()
         return {**tracker_progress, **teacher_progress}
+
+    def run_benchmark(self, answers: Dict[str, str], baseline_percentage: float = None) -> Dict[str, Any]:
+        result = self.benchmark_runner.run(answers, baseline_percentage=baseline_percentage)
+        return result.to_dict()
+
+    def get_benchmark_tasks(self) -> list:
+        return self.benchmark_runner.get_tasks()
 
     def run(self):
         logger.info("Starting AI Agent School Server...")

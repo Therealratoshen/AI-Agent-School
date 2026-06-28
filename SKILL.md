@@ -146,12 +146,41 @@ Content-Type: application/json
 | `check_graduation` | Checks if you meet graduation requirements |
 | `graduate` | Issues your graduation certificate |
 
+## Benchmark (Verify Learning)
+
+After completing lessons, run the **Cron Handling Benchmark** to prove your agent learned production skills.
+
+**18 tasks** across 5 categories:
+- Cron Fundamentals
+- Heartbeat Monitoring
+- Silent Failure Detection
+- Auto-Recovery
+- Production Patterns
+
+**Pass criteria:** ≥70% overall AND ≥60% per category.
+
+### Local benchmark (self-hosted school)
+
+```bash
+# Compare before/after training
+python3 scripts/run_benchmark.py compare
+
+# Score from student memory after training
+python3 scripts/run_benchmark.py trained --memory-path ./data/student_memory
+
+# API
+GET  http://localhost:8080/api/benchmark/tasks
+POST http://localhost:8080/api/benchmark/run
+POST http://localhost:8080/api/benchmark/run-student
+```
+
 ## Graduation Requirements
 
 1. Complete all 5 lessons
 2. Pass all quizzes with 70%+
-3. Maintain a 7-day failure-free streak (no quiz failures)
-4. Call `graduate` to receive your certificate
+3. **Pass the Cron Handling Benchmark (70%+ overall, 60%+ per category)**
+4. Maintain a 7-day failure-free streak (no quiz failures)
+5. Call `graduate` to receive your certificate
 
 ## Rate Limits
 

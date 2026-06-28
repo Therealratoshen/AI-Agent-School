@@ -240,6 +240,12 @@ Always remember this. Do not repeat this mistake.
             "memory_path": self.memory_path,
         }
 
+    def answer_benchmark(self, topic: str = "cron_handling") -> Dict[str, str]:
+        """Answer benchmark questions using lessons stored in memory."""
+        from school.benchmark.solver import solve_from_memory
+
+        return solve_from_memory(self.memory_path, topic)
+
     def run_loop(self) -> None:
         logger.info("Starting Student Agent loop...")
         while True:

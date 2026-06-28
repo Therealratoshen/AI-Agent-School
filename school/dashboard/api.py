@@ -73,6 +73,27 @@ class DashboardAPI:
                 "progress_percent": progress.get("progress_percent", 0),
             })
 
+        @self.app.route("/api/benchmark/tasks")
+        def benchmark_tasks():
+            return jsonify({"tasks": self.server.get_benchmark_tasks()})
+
+        @self.app.route("/api/benchmark/run", methods=["POST"])
+        def benchmark_run():
+            data = request.get_json(silent=True) or {}
+            answers = data.get("answers", {})
+            baseline = data.get("baseline_percentage")
+            return jsonify(self.server.run_benchmark(answers, baseline_percentage=baseline))
+
+        @self.app.route("/api/benchmark/run-student", methods=["POST"])
+        def benchmark_run_student():
+            from school.benchmark.solver import solve_from_memory
+
+            memory_path = self.server.config.get("memory", {}).get(
+                "student_memory_path", "./data/student_memory"
+            )
+            answers = solve_from_memory(memory_path)
+            return jsonify(self.server.run_benchmark(answers))
+
     def run(self, host: str = "0.0.0.0", port: int = 8080):
         self.app.run(host=host, port=port, debug=False, use_reloader=False)
 

@@ -18,7 +18,7 @@ from school.main import AISchoolServer
 from student_agent.main import StudentAgent
 
 
-def run_demo(lessons_to_complete: int = 2) -> dict:
+def run_demo(lessons_to_complete: int = 2, cleanup: bool = True) -> dict:
     tmpdir = tempfile.mkdtemp(prefix="ai-school-demo-")
     comm = os.path.join(tmpdir, "comm")
     memory = os.path.join(tmpdir, "memory")
@@ -85,7 +85,7 @@ def run_demo(lessons_to_complete: int = 2) -> dict:
     server.enroll_student(student_id)
 
     completed = 0
-    max_ticks = 40
+    max_ticks = max(60, lessons_to_complete * 20)
 
     for tick in range(max_ticks):
         student.tick()
@@ -113,10 +113,15 @@ def run_demo(lessons_to_complete: int = 2) -> dict:
         "lessons_in_memory": state["lessons_learned"],
         "lessons_completed": lessons_done_count,
         "corrections": state["corrections_count"],
+        "memory_path": memory,
         "teacher_progress": progress,
     }
 
-    shutil.rmtree(tmpdir, ignore_errors=True)
+    if cleanup:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+    else:
+        result["tmpdir"] = tmpdir
+
     return result
 
 

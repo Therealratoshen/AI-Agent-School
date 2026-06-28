@@ -245,16 +245,36 @@ Available Courses:
         }
 
     def is_production_ready(self) -> bool:
-        """Check if student is ready for production"""
-        return (
-            len(self.lessons_completed) >= self.lesson_manager.total_lessons() and
-            self.training_status == TrainingStatus.TRAINING
-        )
+        """Check if student is ready for production (all lessons + benchmark)."""
+        lessons_done = len(self.lessons_completed) >= self.lesson_manager.total_lessons()
+        return lessons_done and self.training_status == TrainingStatus.TRAINING
 
-    def graduate_student(self) -> Dict[str, Any]:
-        """Graduate the student - training complete"""
+    def check_benchmark_eligibility(self, answers: Dict[str, str]) -> Dict[str, Any]:
+        """Check if student passes the graduation benchmark."""
+        from school.benchmark import BenchmarkRunner
+
+        runner = BenchmarkRunner(self.topic)
+        result = runner.run(answers)
+        return {
+            "eligible": result.passed,
+            "percentage": result.percentage,
+            "certified": result.to_dict()["certified"],
+            "category_scores": result.category_scores,
+        }
+
+    def graduate_student(self, benchmark_answers: Dict[str, str] = None) -> Dict[str, Any]:
+        """Graduate the student - training complete + benchmark passed."""
         if not self.is_production_ready():
-            return {"status": "error", "message": "Not ready for graduation"}
+            return {"status": "error", "message": "Not ready for graduation — complete all lessons first"}
+
+        if benchmark_answers is not None:
+            bench = self.check_benchmark_eligibility(benchmark_answers)
+            if not bench["eligible"]:
+                return {
+                    "status": "error",
+                    "message": f"Benchmark not passed ({bench['percentage']:.1f}% — need 70%)",
+                    "benchmark": bench,
+                }
 
         self.training_status = TrainingStatus.PRODUCTION_READY
 
